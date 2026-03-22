@@ -1,0 +1,417 @@
+import os
+import json
+from google.cloud import texttospeech_v1beta1 as texttospeech
+
+# Output directory for your MP3s
+OUTPUT_DIR = "public/audio" 
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def generate_slide_audio(slide_id, ssml_text):
+    """
+    Generates MP3 audio and extracts SSML mark timestamps.
+    """
+    client = texttospeech.TextToSpeechClient()
+
+    input_text = texttospeech.SynthesisInput(ssml=ssml_text)
+
+    # Switched to WaveNet: Fully supports <mark> tags and sounds great.
+    voice = texttospeech.VoiceSelectionParams(
+        language_code="en-US",
+        name="en-US-Wavenet-F", 
+        ssml_gender=texttospeech.SsmlVoiceGender.FEMALE
+    )
+
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3
+    )
+
+    request = texttospeech.SynthesizeSpeechRequest(
+        input=input_text,
+        voice=voice,
+        audio_config=audio_config,
+        enable_time_pointing=[texttospeech.SynthesizeSpeechRequest.TimepointType.SSML_MARK]
+    )
+
+    try:
+        response = client.synthesize_speech(request=request)
+    except Exception as e:
+        print(f"❌ Error generating {slide_id}: {e}")
+        return
+
+    # 1. Save the Audio File
+    filename = f"{OUTPUT_DIR}/{slide_id}.mp3"
+    with open(filename, "wb") as out:
+        out.write(response.audio_content)
+        print(f"✅ Generated audio: {filename}")
+
+    # 2. Process and Format Timestamps for your Frontend
+    formatted_marks = []
+    
+    for timepoint in response.timepoints:
+        try:
+            # Assuming format "frag-X" where X is the index
+            frag_index = int(timepoint.mark_name.split('-')[1])
+        except:
+            frag_index = 0
+
+        formatted_marks.append({
+            "markName": timepoint.mark_name,
+            "timeSeconds": round(timepoint.time_seconds, 2),
+            "fragmentIndex": frag_index
+        })
+
+    # Print the JSON snippet to copy-paste into mock-lesson.ts
+    print(f"\n📋 COPY THIS INTO 'mock-lesson.ts' for {slide_id}:")
+    print(f"audioDuration: {len(response.audio_content) / 32000:.1f}, // Approx duration") 
+    print("timepoints: ", end="")
+    print(json.dumps(formatted_marks, indent=2))
+    print("-" * 60)
+
+# --- THE LESSON SCRIPT (SSML) — OS Process Management (15 slides) ---
+slides_data = [
+    # ── Slide 0: Title ───────────────────────────────────────────────
+    {
+        "id": "os-slide-0",
+        "ssml": """
+        <speak>
+            Welcome back. <break time="400ms"/>
+            Today we are diving deep into one of the most fundamental pillars of modern operating systems: Process Management.
+            <break time="300ms"/>
+            By the end of this lesson, you will understand exactly how your OS juggles dozens, even thousands, of programs simultaneously.
+            <break time="300ms"/>
+            Let's begin.
+        </speak>
+        """
+    },
+
+    # ── Slide 1: What is a Process? ──────────────────────────────────
+    {
+        "id": "os-slide-1",
+        "ssml": """
+        <speak>
+            Let's start with the most important distinction.
+            <break time="300ms"/>
+            <mark name="frag-0"/> A program is just a passive file sitting on your disk — it is simply compiled code stored in an executable file.
+            <break time="400ms"/>
+            <mark name="frag-1"/> A process, on the other hand, is that program brought to life — it is an active entity loaded into memory with its own resources.
+            <break time="500ms"/>
+            <mark name="frag-2"/> Think of it like a recipe versus actually cooking.
+            The recipe is the program.
+            The act of cooking, with all the ingredients on the counter, the timer running, and the chef making decisions — that is the process.
+            <break time="400ms"/>
+            <mark name="frag-3"/> One program can spawn multiple processes.
+            For example, opening two Chrome tabs creates two separate processes from the same program.
+        </speak>
+        """
+    },
+
+    # ── Slide 2: Process Memory Layout ───────────────────────────────
+    {
+        "id": "os-slide-2",
+        "ssml": """
+        <speak>
+            When a process is created, the OS carves out a structured region of memory for it.
+            This memory is divided into four distinct sections.
+            <break time="400ms"/>
+            <mark name="frag-0"/> First, the Text Section at the bottom — this holds your compiled machine code, the actual executable instructions.
+            It is read-only, so that a bug in your program cannot accidentally overwrite its own instructions.
+            <break time="400ms"/>
+            <mark name="frag-1"/> Next, the Data Section, which stores all global and static variables — things initialized before main runs.
+            <break time="400ms"/>
+            <mark name="frag-2"/> Above that is the Heap — this is where dynamic memory allocation happens at runtime,
+            like when you call malloc in C or new in Java. The heap grows upward.
+            <break time="400ms"/>
+            <mark name="frag-3"/> And finally, at the very top, the Stack — it grows downward and holds temporary data
+            like function parameters, return addresses, and local variables.
+            Every time you call a function, a new stack frame is pushed on top.
+        </speak>
+        """
+    },
+
+    # ── Slide 3: Process Control Block (PCB) ─────────────────────────
+    {
+        "id": "os-slide-3",
+        "ssml": """
+        <speak>
+            To manage thousands of processes, the OS needs a data structure that stores everything about each one.
+            This is the Process Control Block, or PCB. Think of it as the process's identity card.
+            <break time="400ms"/>
+            <mark name="frag-0"/> It contains the Process ID, a unique integer identifying the process.
+            <break time="400ms"/>
+            <mark name="frag-1"/> It stores the Process State — whether the process is new, ready, running, waiting, or terminated.
+            <break time="400ms"/>
+            <mark name="frag-2"/> Critically, it holds the Program Counter — this is the memory address of the very next instruction to execute.
+            If the CPU gets interrupted, this is how the OS knows exactly where to resume.
+            <break time="400ms"/>
+            <mark name="frag-3"/> It also saves all CPU Registers — accumulators, stack pointers, index registers — the entire computational context.
+            <break time="400ms"/>
+            <mark name="frag-4"/> And finally, it records memory management info and scheduling priority.
+        </speak>
+        """
+    },
+
+    # ── Slide 4: The Five Process States ─────────────────────────────
+    {
+        "id": "os-slide-4",
+        "ssml": """
+        <speak>
+            Every process cycles through five fundamental states.
+            <break time="400ms"/>
+            <mark name="frag-0"/> First, New — the process is being created, its PCB is allocated but it is not yet competing for CPU time.
+            <break time="400ms"/>
+            <mark name="frag-1"/> Second, Ready — the process is loaded in memory, all resources are available,
+            and it is simply waiting in a queue for the CPU scheduler to pick it.
+            <break time="400ms"/>
+            <mark name="frag-2"/> Third, Running — the process is actively executing instructions on the CPU.
+            Only one process per core can be in this state.
+            <break time="400ms"/>
+            <mark name="frag-3"/> Fourth, Waiting, also called Blocked — the process has requested something slow,
+            like disk I/O or a network packet, and cannot continue until that operation completes.
+            <break time="400ms"/>
+            <mark name="frag-4"/> Finally, Terminated — the process has finished execution,
+            and the OS is deallocating its resources and cleaning up its PCB.
+        </speak>
+        """
+    },
+
+    # ── Slide 5: State Transitions ───────────────────────────────────
+    {
+        "id": "os-slide-5",
+        "ssml": """
+        <speak>
+            Now let us trace the transitions between these states.
+            <break time="400ms"/>
+            <mark name="frag-0"/> When a process is first admitted by the OS, it transitions from New to Ready.
+            <break time="500ms"/>
+            <mark name="frag-1"/> The CPU scheduler then picks it, transitioning it from Ready to Running — this is called dispatching.
+            <break time="500ms"/>
+            <mark name="frag-2"/> While running, if the process needs I/O, it moves from Running to Waiting.
+            Once the I/O completes, a hardware interrupt fires and the process goes from Waiting back to Ready.
+            <break time="500ms"/>
+            <mark name="frag-3"/> But here is the crucial one: if a timer interrupt fires while a process is running,
+            the OS preempts it, forcefully moving it from Running back to Ready.
+            This is how the OS ensures fairness — no single process can hog the CPU forever.
+        </speak>
+        """
+    },
+
+    # ── Slide 6: Context Switch Anatomy ──────────────────────────────
+    {
+        "id": "os-slide-6",
+        "ssml": """
+        <speak>
+            Let us trace a context switch step by step.
+            <break time="300ms"/>
+            <mark name="frag-0"/> Step one: Process P zero is executing on the CPU.
+            <break time="400ms"/>
+            <mark name="frag-1"/> Step two: An interrupt or system call fires.
+            <break time="400ms"/>
+            <mark name="frag-2"/> Step three: The OS kernel immediately saves P zero's entire state —
+            program counter, registers, everything — into PCB zero.
+            <break time="400ms"/>
+            <mark name="frag-3"/> Step four: The scheduler selects process P one
+            and reloads its previously saved state from PCB one.
+            <break time="400ms"/>
+            <mark name="frag-4"/> Step five: P one resumes executing exactly where it left off.
+            <break time="500ms"/>
+            <mark name="frag-5"/> And here is the critical insight — during this entire save and restore operation,
+            the CPU does absolutely zero useful user work.
+            Context switch time is pure overhead. The system is essentially frozen from the user's perspective.
+        </speak>
+        """
+    },
+
+    # ── Slide 7: Context Switch Cost ─────────────────────────────────
+    {
+        "id": "os-slide-7",
+        "ssml": """
+        <speak>
+            So how expensive is a context switch?
+            <break time="300ms"/>
+            <mark name="frag-0"/> On modern hardware, a single switch takes roughly one to ten microseconds.
+            That sounds fast, but consider this — if your OS is switching thousands of times per second, those microseconds add up.
+            <break time="500ms"/>
+            What makes it expensive?
+            <break time="300ms"/>
+            <mark name="frag-1"/> First, saving and restoring all CPU registers.
+            Second, flushing the Translation Lookaside Buffer, or TLB, which kills memory access performance.
+            <break time="400ms"/>
+            <mark name="frag-2"/> Third, the CPU cache goes cold — data from the old process is useless for the new one.
+            And fourth, pipeline stalls — the CPU's instruction pipeline must be drained and refilled.
+            <break time="400ms"/>
+            <mark name="frag-3"/> This is why operating system designers obsess over minimizing unnecessary context switches.
+        </speak>
+        """
+    },
+
+    # ── Slide 8: fork() ──────────────────────────────────────────────
+    {
+        "id": "os-slide-8",
+        "ssml": """
+        <speak>
+            How does the OS actually create a new process?
+            In Unix and Linux, the answer is the fork system call.
+            <break time="400ms"/>
+            <mark name="frag-0"/> When a process calls fork, the OS creates an almost exact duplicate of the calling process.
+            The entire address space is copied — text, data, heap, and stack.
+            <break time="500ms"/>
+            But here is the clever part: fork returns twice.
+            <break time="300ms"/>
+            <mark name="frag-1"/> In the parent process, fork returns the child's PID, a positive number.
+            In the newly created child process, fork returns zero.
+            This is how each process knows whether it is the parent or the child, and can branch accordingly.
+            <break time="500ms"/>
+            <mark name="frag-2"/> The child gets a brand-new PID but inherits the parent's open files, environment variables, and more.
+            <break time="400ms"/>
+            <mark name="frag-3"/> Modern systems use copy-on-write optimization —
+            the memory is not actually duplicated until one of the processes modifies it, saving enormous amounts of memory.
+        </speak>
+        """
+    },
+
+    # ── Slide 9: exec() ──────────────────────────────────────────────
+    {
+        "id": "os-slide-9",
+        "ssml": """
+        <speak>
+            After forking, the child process is still an exact copy of the parent.
+            <break time="300ms"/>
+            <mark name="frag-0"/> To run a different program, we use the exec family of system calls.
+            <break time="500ms"/>
+            <mark name="frag-1"/> Exec completely replaces the current process's address space with a new program loaded from disk.
+            The text, data, heap, and stack are all wiped and reloaded.
+            <break time="500ms"/>
+            <mark name="frag-2"/> Crucially, the PID does not change — it is still the same process, just running entirely different code.
+            <break time="400ms"/>
+            <mark name="frag-3"/> This fork-then-exec pattern is the standard Unix way of launching new programs.
+            When you type a command in your terminal, the shell calls fork to create a child,
+            then the child calls exec to replace itself with the program you requested.
+        </speak>
+        """
+    },
+
+    # ── Slide 10: Process Termination ────────────────────────────────
+    {
+        "id": "os-slide-10",
+        "ssml": """
+        <speak>
+            <mark name="frag-0"/> A process terminates when it calls the exit system call or when it returns from main.
+            <break time="500ms"/>
+            <mark name="frag-1"/> The parent process can call wait to collect the child's exit status.
+            <break time="500ms"/>
+            But what happens when things go wrong?
+            <break time="400ms"/>
+            <mark name="frag-2"/> A Zombie Process occurs when a child terminates but its parent has not yet called wait.
+            The child's PCB lingers in the process table — it is dead but not cleaned up.
+            It consumes a PID and a slot in the table, which is a resource leak.
+            <break time="500ms"/>
+            <mark name="frag-3"/> An Orphan Process is the opposite — the parent terminates before the child.
+            In this case, the init process, PID one, automatically adopts the orphan and eventually calls wait to clean it up.
+            <break time="300ms"/>
+            Understanding these edge cases is essential for writing robust systems software.
+        </speak>
+        """
+    },
+
+    # ── Slide 11: IPC Overview ───────────────────────────────────────
+    {
+        "id": "os-slide-11",
+        "ssml": """
+        <speak>
+            Processes often need to talk to each other. This is called Inter-Process Communication, or IPC.
+            There are two fundamental models.
+            <break time="400ms"/>
+            <mark name="frag-0"/> Shared Memory is faster because processes directly read and write a common region of memory —
+            no kernel involvement after setup. But it requires careful synchronization to avoid data races.
+            <break time="500ms"/>
+            <mark name="frag-1"/> Message Passing is cleaner — processes send and receive explicit messages through the kernel.
+            It is easier to program correctly, but slower because every message requires a system call,
+            crossing the user-kernel boundary.
+            <break time="500ms"/>
+            <mark name="frag-2"/> In practice, high-performance systems prefer shared memory,
+            <mark name="frag-3"/> while distributed systems and microservices favor message passing
+            because it works across network boundaries.
+        </speak>
+        """
+    },
+
+    # ── Slide 12: Pipes ──────────────────────────────────────────────
+    {
+        "id": "os-slide-12",
+        "ssml": """
+        <speak>
+            The simplest IPC mechanism is the pipe.
+            A pipe creates a unidirectional communication channel between a parent and child process.
+            <break time="400ms"/>
+            <mark name="frag-0"/> The pipe system call creates two file descriptors —
+            fd zero for reading and fd one for writing.
+            After forking, the parent closes its read end and writes data into the pipe.
+            The child closes its write end and reads data from the pipe.
+            <break time="500ms"/>
+            <mark name="frag-1"/> This is exactly what happens when you use the pipe operator in your terminal —
+            for example, ls pipe grep txt.
+            The ls process writes its output into the pipe and the grep process reads from it.
+            <break time="500ms"/>
+            <mark name="frag-2"/> Pipes are unidirectional — data flows one way only.
+            <break time="400ms"/>
+            <mark name="frag-3"/> Named pipes, or FIFOs, extend this concept to allow communication between unrelated processes
+            by giving the pipe a name in the file system.
+        </speak>
+        """
+    },
+
+    # ── Slide 13: CPU Scheduling Overview ────────────────────────────
+    {
+        "id": "os-slide-13",
+        "ssml": """
+        <speak>
+            With many processes competing for the CPU, the OS needs a scheduler to decide who runs next.
+            The scheduler optimizes for several competing criteria.
+            <break time="400ms"/>
+            <mark name="frag-0"/> CPU Utilization — keep the CPU as busy as possible, ideally above ninety percent.
+            <break time="500ms"/>
+            <mark name="frag-1"/> Throughput — maximize the number of processes completed per unit time.
+            <break time="500ms"/>
+            <mark name="frag-2"/> Turnaround Time — minimize the total time from process submission to completion.
+            <break time="500ms"/>
+            <mark name="frag-3"/> Waiting Time — minimize how long a process sits idle in the ready queue.
+            And Response Time — in interactive systems, minimize the time from a request to the first response.
+            <break time="400ms"/>
+            <mark name="frag-4"/> No single algorithm perfectly optimizes all five simultaneously,
+            which is what makes scheduling one of the hardest problems in OS design.
+        </speak>
+        """
+    },
+
+    # ── Slide 14: Summary & Key Takeaways ────────────────────────────
+    {
+        "id": "os-slide-14",
+        "ssml": """
+        <speak>
+            Let us recap what we have covered today.
+            <break time="300ms"/>
+            <mark name="frag-0"/> A process is a program in execution, structured in memory as text, data, heap, and stack.
+            <break time="300ms"/>
+            <mark name="frag-1"/> The PCB stores everything the OS needs to manage a process —
+            especially the program counter and CPU registers.
+            <break time="300ms"/>
+            <mark name="frag-2"/> Context switches are the mechanism for multitasking,
+            but they come at a real performance cost.
+            <break time="300ms"/>
+            <mark name="frag-3"/> Processes are created with fork and exec,
+            and we must handle zombie and orphan processes correctly.
+            <break time="300ms"/>
+            <mark name="frag-4"/> And finally, IPC enables cooperation between processes,
+            with shared memory and message passing as the two fundamental approaches.
+            <break time="500ms"/>
+            In our next session, we will dive deep into CPU scheduling algorithms. See you there.
+        </speak>
+        """
+    },
+]
+
+if __name__ == "__main__":
+    print("🚀 Starting TTS Generation for OS Process Management (15 slides)...\n")
+    for slide in slides_data:
+        generate_slide_audio(slide["id"], slide["ssml"])
+    print("\n✨ All done! Copy the JSON output above into your mock-os-lesson.ts file.")

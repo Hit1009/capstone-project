@@ -1,0 +1,619 @@
+@import "tailwindcss";
+
+/* ── Base Styles ────────────────────────────────────────────────────── */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --accent: #6366f1;
+  --accent-light: #e0e7ff;
+  --surface: #f8fafc;
+  --border: #e2e8f0;
+  --text-muted: #94a3b8;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* ── Reveal.js Container ────────────────────────────────────────────── */
+.reveal-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.reveal-container .reveal {
+  height: 100%;
+}
+
+/* ── Custom Scrollbar ───────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ── Audio Player ───────────────────────────────────────────────────── */
+.audio-player {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.audio-player-progress-track {
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  cursor: pointer;
+  transition: height 0.15s ease;
+}
+
+.audio-player-progress-track:hover {
+  height: 6px;
+}
+
+.audio-player-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #818cf8);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.1s linear;
+}
+
+.audio-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  gap: 8px;
+}
+
+.audio-player-left,
+.audio-player-center,
+.audio-player-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audio-player-left {
+  flex: 1;
+}
+
+.audio-player-center {
+  flex: 0 0 auto;
+}
+
+.audio-player-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.audio-player-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audio-player-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.audio-player-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.audio-player-btn-primary {
+  width: 36px;
+  height: 36px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.audio-player-btn-primary:hover {
+  background: #4f46e5;
+  color: white;
+  transform: scale(1.05);
+}
+
+.audio-player-btn-active {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.audio-player-time {
+  font-size: 12px;
+  font-family: var(--font-geist-mono), monospace;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
+.audio-player-error {
+  font-size: 11px;
+  color: #f59e0b;
+  background: #fef3c7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
+.audio-player-slide-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.audio-player-speed {
+  width: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-geist-mono), monospace;
+  color: #64748b;
+}
+
+.audio-player-volume-slider {
+  width: 64px;
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #e2e8f0;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.audio-player-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.audio-player-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* ── Transcript Overlay ─────────────────────────────────────────────── */
+.transcript-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 8px 16px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 8px;
+  z-index: 5;
+  animation: transcript-fade-in 0.3s ease;
+}
+
+.transcript-text {
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  margin: 0;
+}
+
+@keyframes transcript-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── Doubt Panel ────────────────────────────────────────────────────── */
+.doubt-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: backdrop-fade-in 0.2s ease;
+}
+
+@keyframes backdrop-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.doubt-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-width: 90vw;
+  height: 100vh;
+  background: white;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.doubt-panel-open {
+  transform: translateX(0);
+}
+
+.doubt-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.doubt-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.doubt-panel-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doubt-panel-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doubt-panel-close:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.doubt-panel-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.doubt-panel-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  text-align: center;
+}
+
+.doubt-panel-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.doubt-panel-success p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.doubt-panel-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1e293b;
+  background: var(--surface);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.doubt-panel-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.doubt-panel-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.doubt-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.doubt-panel-mic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.doubt-panel-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.doubt-panel-submit:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.doubt-panel-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.doubt-panel-footer {
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.doubt-panel-footer p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doubt-panel-footer kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: var(--font-geist-mono), monospace;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: #475569;
+}
+
+/* ── Doubt Panel — Chat Messages ───────────────────────────────────── */
+
+.doubt-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doubt-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.doubt-message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doubt-message-avatar-user {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: white;
+}
+
+.doubt-message-avatar-ai {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.doubt-message-bubble {
+  flex: 1;
+  min-width: 0;
+}
+
+.doubt-message-bubble-user {
+  background: #f1f5f9;
+  border-radius: 2px 12px 12px 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.doubt-message-bubble-ai {
+  background: linear-gradient(135deg, #f0f9ff, #eff6ff);
+  border-radius: 2px 12px 12px 12px;
+  padding: 10px 14px;
+  border: 1px solid #bfdbfe;
+}
+
+.doubt-message-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #1e293b;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Doubt Panel — Loading Dots ────────────────────────────────────── */
+
+.doubt-loading {
+  display: flex;
+  gap: 5px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f0f9ff, #eff6ff);
+  border: 1px solid #bfdbfe;
+  border-radius: 2px 12px 12px 12px;
+}
+
+.doubt-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #93c5fd;
+  animation: doubt-dot-bounce 1.2s infinite ease-in-out;
+}
+
+.doubt-loading-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.doubt-loading-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes doubt-dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Doubt Panel — Error ───────────────────────────────────────────── */
+
+.doubt-error {
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.doubt-error p {
+  font-size: 13px;
+  color: #dc2626;
+  margin: 0;
+}
+
+/* ── Doubt Panel — Input Area ──────────────────────────────────────── */
+
+.doubt-panel-input-area {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: white;
+}
+
+.doubt-panel-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.doubt-panel-input-wrapper .doubt-panel-textarea {
+  flex: 1;
+  min-height: 42px;
+  max-height: 120px;
+  padding: 10px 14px;
+  resize: none;
+}
+
+.doubt-panel-input-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 8px 0 0 0;
+  text-align: center;
+}
+
+.doubt-panel-input-hint kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: var(--font-geist-mono), monospace;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  color: #475569;
+}
+
