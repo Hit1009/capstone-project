@@ -1,0 +1,37 @@
+﻿{
+    "slides":  [
+                   {
+                       "id":  "doubt-1774355435168-slide-0",
+                       "slideIndex":  0,
+                       "rawMarkdown":  "### What is an Operating System (OS)?\n\nAn OS is the **system software** that manages all other programs on a computer.\n\n*   **The Bridge:** It acts as an intermediary between the user and the hardware. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e\n*   **The Environment:** It provides a platform for application software (like Chrome or Spotify) to run. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e\n*   **Examples:** Windows, macOS, Linux, Android, and iOS. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e",
+                       "audioUrl":  "/audio/doubt-1774355435168-slide-0.mp3",
+                       "audioDuration":  8.4,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "Great question! At its core, an operating system—or OS—is the most important software that runs on a computer. Think of it as a bridge; it acts as an intermediary between you, the user, and the complex physical hardware inside the machine. It also creates a stable environment, providing a platform where application software like your web browser or music player can function without needing to know how the hardware works. You interact with an OS every day, whether it\u0027s Windows on a laptop, macOS on a MacBook, or Android on your phone."
+                   },
+                   {
+                       "id":  "doubt-1774355435168-slide-1",
+                       "slideIndex":  1,
+                       "rawMarkdown":  "### The OS as a Resource Manager\n\n| Resource | OS Responsibility |\n| :--- | :--- |\n| **CPU** | Decides which program runs and for how long. | \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e\n| **Memory** | Allocates RAM so apps don\u0027t overwrite each other. | \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e\n| **Storage** | Manages how files are saved and retrieved. | \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e\n| **I/O Devices** | Coordinates keyboards, mice, and printers. | \u003c!-- .element: class=\"fragment\" data-fragment-index=\"3\" --\u003e",
+                       "audioUrl":  "/audio/doubt-1774355435168-slide-1.mp3",
+                       "audioDuration":  8.5,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "To understand why we call it a \"layer,\" look at how it manages resources like a traffic controller. First, it handles CPU scheduling, deciding exactly which program gets to use the processor and for how long. Second, it manages Memory, allocating space in the RAM so that your apps don\u0027t crash into each other\u0027s data. It also oversees Storage, keeping track of where every file is saved on your disk. Finally, it coordinates Input and Output devices, making sure your keyboard, mouse, and printer all talk to your computer correctly."
+                   },
+                   {
+                       "id":  "doubt-1774355435168-slide-2",
+                       "slideIndex":  2,
+                       "rawMarkdown":  "### Summary: The \"Layer\" Concept\n\nConnecting back to your slide, the OS is a **software layer**:\n\n1.  **Abstraction:** It hides hardware complexity from the user. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e\n2.  **Efficiency:** It ensures hardware resources are used optimally. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e\n3.  **Control:** It provides a secure way for users to interact with the machine. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e\n\n*Without the OS, you would have to write binary code just to save a document!*",
+                       "audioUrl":  "/audio/doubt-1774355435168-slide-2.mp3",
+                       "audioDuration":  8.3,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "In summary, let\u0027s connect this back to the \"layer\" concept you were just reading about. The OS provides abstraction, which is a fancy way of saying it hides the scary complexity of the hardware so you can just click icons. It ensures efficiency by making sure no single program hogs all the computer\u0027s power. And most importantly, it provides control and security. Without this essential layer, you would literally have to write binary code just to perform a simple task like saving a text document. It makes modern computing possible!"
+                   }
+               ]
+}

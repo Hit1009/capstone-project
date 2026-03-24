@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Loader2, Trash2, User, Bot } from 'lucide-react';
-import { askDoubt, type DoubtMessage } from '@/lib/api';
+import { X, Send, Sparkles, Loader2, BookOpen } from 'lucide-react';
+import { askDoubtSlides } from '@/lib/api';
+import type { SlideData } from '@/types/presentation';
 
 interface DoubtPanelProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface DoubtPanelProps {
   slideIndex: number;
   slideContent: string;
   transcript: string;
+  onBranchSlides: (slides: SlideData[]) => void;
 }
 
 export default function DoubtPanel({
@@ -20,18 +22,12 @@ export default function DoubtPanel({
   slideIndex,
   slideContent,
   transcript,
+  onBranchSlides,
 }: DoubtPanelProps) {
   const [question, setQuestion] = useState('');
-  const [messages, setMessages] = useState<DoubtMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
 
   // Focus textarea when panel opens
   useEffect(() => {
@@ -44,22 +40,22 @@ export default function DoubtPanel({
     const trimmed = question.trim();
     if (!trimmed || isLoading) return;
 
-    const userMessage: DoubtMessage = { role: 'user', text: trimmed };
-    setMessages((prev) => [...prev, userMessage]);
-    setQuestion('');
     setIsLoading(true);
     setError(null);
 
     try {
-      const { answer } = await askDoubt({
+      const { slides } = await askDoubtSlides({
         question: trimmed,
         courseId,
         slideIndex,
         slideContent,
         transcript,
-        history: messages,
       });
-      setMessages((prev) => [...prev, { role: 'ai', text: answer }]);
+
+      // Pass branch slides to the parent
+      setQuestion('');
+      onBranchSlides(slides);
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -74,19 +70,13 @@ export default function DoubtPanel({
     }
   };
 
-  const handleClear = () => {
-    setMessages([]);
-    setError(null);
-    setQuestion('');
-  };
-
   return (
     <>
       {/* Backdrop */}
       {isOpen && (
         <div
           className="doubt-panel-backdrop"
-          onClick={onClose}
+          onClick={isLoading ? undefined : onClose}
         />
       )}
 
@@ -101,28 +91,38 @@ export default function DoubtPanel({
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {messages.length > 0 && (
+            {!isLoading && (
               <button
-                onClick={handleClear}
+                onClick={onClose}
                 className="doubt-panel-close"
-                title="Clear conversation"
               >
-                <Trash2 className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             )}
-            <button
-              onClick={onClose}
-              className="doubt-panel-close"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
-        {/* Messages area */}
+        {/* Body */}
         <div className="doubt-panel-body custom-scrollbar">
-          {messages.length === 0 && !isLoading ? (
-            /* Empty state */
+          {isLoading ? (
+            /* Generation Loading State */
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-5 shadow-sm">
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800 mb-2">
+                Preparing your explanation
+              </h4>
+              <p className="text-sm text-slate-500 max-w-xs leading-relaxed mb-4">
+                The AI tutor is creating interactive slides to answer your question...
+              </p>
+              <div className="doubt-gen-progress">
+                <div className="doubt-gen-progress-bar" />
+              </div>
+              <p className="text-xs text-slate-400 mt-4">This may take 10–15 seconds</p>
+            </div>
+          ) : (
+            /* Empty state / Input prompt */
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-5 shadow-sm">
                 <Sparkles className="w-8 h-8 text-indigo-500" />
@@ -131,50 +131,22 @@ export default function DoubtPanel({
                 Ask anything about this slide
               </h4>
               <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
-                The AI tutor has context about what you&apos;re currently learning
-                and will provide personalized explanations.
+                The AI tutor will create a set of interactive slides with audio
+                narration to explain your doubt visually.
               </p>
+              <div className="flex items-center gap-2 mt-5 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-100">
+                <BookOpen className="w-4 h-4 text-indigo-500" />
+                <span className="text-xs font-medium text-indigo-600">
+                  Response: Interactive slides + audio
+                </span>
+              </div>
             </div>
-          ) : (
-            /* Conversation */
-            <div className="doubt-messages">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`doubt-message doubt-message-${msg.role}`}>
-                  <div className={`doubt-message-avatar doubt-message-avatar-${msg.role}`}>
-                    {msg.role === 'user' ? (
-                      <User className="w-4 h-4" />
-                    ) : (
-                      <Bot className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className={`doubt-message-bubble doubt-message-bubble-${msg.role}`}>
-                    <p className="doubt-message-text">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
+          )}
 
-              {/* Loading indicator */}
-              {isLoading && (
-                <div className="doubt-message doubt-message-ai">
-                  <div className="doubt-message-avatar doubt-message-avatar-ai">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="doubt-loading">
-                    <div className="doubt-loading-dot" />
-                    <div className="doubt-loading-dot" />
-                    <div className="doubt-loading-dot" />
-                  </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="doubt-error">
-                  <p>{error}</p>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
+          {/* Error */}
+          {error && (
+            <div className="doubt-error mx-4 mb-4">
+              <p>{error}</p>
             </div>
           )}
         </div>
@@ -214,3 +186,4 @@ export default function DoubtPanel({
     </>
   );
 }
+

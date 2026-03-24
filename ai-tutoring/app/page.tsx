@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { fetchCourses, type CourseInfo } from '@/lib/api';
+import TopicInputModal from '@/components/TopicInputModal';
 import { 
   Brain, 
   Cpu, 
@@ -22,9 +24,11 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function HomePage() {
+  const router = useRouter();
   const [courses, setCourses] = useState<CourseInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses()
@@ -32,6 +36,10 @@ export default function HomePage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleCourseGenerated = (courseId: string) => {
+    router.push(`/learn?course=${encodeURIComponent(courseId)}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900 font-sans">
@@ -104,6 +112,11 @@ export default function HomePage() {
                       `}>
                         Coming Soon
                       </span>
+                    ) : isLearnAnything ? (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        AI Powered
+                      </span>
                     ) : (
                       <>
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -116,11 +129,30 @@ export default function HomePage() {
                 </div>
               );
 
-              return isComingSoon ? (
-                <div key={course.id} className="group relative">
-                  {cardContent}
-                </div>
-              ) : (
+              // Learn Anything card — opens modal
+              if (isLearnAnything) {
+                return (
+                  <button
+                    key={course.id}
+                    className="group block h-full text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl cursor-pointer"
+                    onClick={() => setIsTopicModalOpen(true)}
+                  >
+                    {cardContent}
+                  </button>
+                );
+              }
+
+              // Coming soon cards — not clickable
+              if (isComingSoon) {
+                return (
+                  <div key={course.id} className="group relative">
+                    {cardContent}
+                  </div>
+                );
+              }
+
+              // Available courses — link to learn page
+              return (
                 <Link key={course.id} href={`/learn?course=${course.id}`} className="group block h-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
                   {cardContent}
                 </Link>
@@ -136,6 +168,14 @@ export default function HomePage() {
           AI Tutor — Capstone Project &copy; {new Date().getFullYear()}
         </p>
       </footer>
+
+      {/* Topic Input Modal */}
+      <TopicInputModal
+        isOpen={isTopicModalOpen}
+        onClose={() => setIsTopicModalOpen(false)}
+        onCourseGenerated={handleCourseGenerated}
+      />
     </div>
   );
 }
+

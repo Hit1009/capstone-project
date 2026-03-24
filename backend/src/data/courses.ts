@@ -42,7 +42,7 @@ export const courses: CourseInfo[] = [
     description: 'Generate and learn a comprehensive, interactive course on any topic you desire. Powered by advanced AI agents.',
     icon: 'Sparkles',
     slideCount: 0,
-    status: 'coming-soon',
+    status: 'available',
   },
 ];
 
@@ -54,4 +54,13 @@ const lessonMap: Record<string, LessonPayload> = {
 
 export function getLessonPayload(courseId: string): LessonPayload | undefined {
   return lessonMap[courseId];
+}
+
+/**
+ * Register a dynamically generated lesson so it can be fetched
+ * via GET /api/lessons/:courseId
+ */
+export function addDynamicLesson(courseId: string, lesson: LessonPayload): void {
+  lessonMap[courseId] = lesson;
+  console.log(`📚 Registered dynamic lesson: ${courseId} (${lesson.slides.length} slides)`);
 }

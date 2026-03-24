@@ -1,4 +1,4 @@
-import type { LessonPayload } from '@/types/presentation';
+import type { LessonPayload, SlideData } from '@/types/presentation';
 
 // ── API Configuration ──────────────────────────────────────────────
 
@@ -82,6 +82,58 @@ export async function askDoubt(params: AskDoubtParams): Promise<{ answer: string
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `Failed to get AI response: ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Generate Course API ────────────────────────────────────────────
+
+export interface GenerateCourseResponse {
+  courseId: string;
+  lesson: LessonPayload;
+}
+
+/**
+ * Generate a full AI course on any topic.
+ * This is a blocking call that takes 30-60 seconds.
+ */
+export async function generateCourse(topic: string): Promise<GenerateCourseResponse> {
+  const res = await fetch(`${API_BASE}/api/generate-course`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Failed to generate course: ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Doubt Slides API ───────────────────────────────────────────────
+
+export interface AskDoubtSlidesParams {
+  question: string;
+  courseId: string;
+  slideIndex: number;
+  slideContent: string;
+  transcript: string;
+}
+
+/**
+ * Generate branch slides to answer a doubt (instead of text chat).
+ */
+export async function askDoubtSlides(
+  params: AskDoubtSlidesParams
+): Promise<{ slides: SlideData[] }> {
+  const res = await fetch(`${API_BASE}/api/doubt-slides`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Failed to generate explanation: ${res.status}`);
   }
   return res.json();
 }

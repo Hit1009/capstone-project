@@ -50,6 +50,10 @@ export function useAudioSync(
   const audioRef = useRef<HTMLAudioElement>(null);
   const triggeredMarksRef = useRef<Set<string>>(new Set());
   const currentSlideIndexRef = useRef(0);
+
+  // Always keep a ref to the latest slides so callbacks never read stale data
+  const lessonSlidesRef = useRef(lesson.slides);
+  lessonSlidesRef.current = lesson.slides;
   const [state, setState] = useState<AudioSyncState>({
     currentSlideIndex: 0,
     isPlaying: false,
@@ -126,7 +130,8 @@ export function useAudioSync(
 
     const currentTime = audioRef.current.currentTime;
     const slideIdx = currentSlideIndexRef.current;
-    const currentSlide = lesson.slides[slideIdx];
+    const slides = lessonSlidesRef.current;
+    const currentSlide = slides[slideIdx];
     if (!currentSlide) return;
 
     // Check for timepoints that need triggering
@@ -148,37 +153,37 @@ export function useAudioSync(
       currentTime,
       ...(triggered ? { triggeredMarks: new Set(triggeredMarksRef.current) } : {}),
     }));
-  }, [lesson.slides, presentationRef]);
+  }, [presentationRef]);
 
   const handleEnded = useCallback(() => {
-    const isLast = currentSlideIndexRef.current >= lesson.slides.length - 1;
+    const isLast = currentSlideIndexRef.current >= lessonSlidesRef.current.length - 1;
     if (!isLast) {
       // Auto-advance to the next slide
       presentationRef.current?.next();
     } else {
       setState(prev => ({ ...prev, isPlaying: false }));
     }
-  }, [lesson.slides.length, presentationRef]);
+  }, [presentationRef]);
 
   const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) {
       setState(prev => ({
         ...prev,
-        duration: audioRef.current!.duration || lesson.slides[prev.currentSlideIndex]?.audioDuration || 0,
+        duration: audioRef.current!.duration || lessonSlidesRef.current[prev.currentSlideIndex]?.audioDuration || 0,
         audioError: false,
       }));
     }
-  }, [lesson.slides]);
+  }, []);
 
   const handleAudioError = useCallback(() => {
     // Audio file failed to load — enable fallback mode
-    const currentSlide = lesson.slides[currentSlideIndexRef.current];
+    const currentSlide = lessonSlidesRef.current[currentSlideIndexRef.current];
     setState(prev => ({
       ...prev,
       audioError: true,
       duration: currentSlide?.audioDuration || 0,
     }));
-  }, [lesson.slides]);
+  }, []);
 
   // ── Slide Change Handler ───────────────────────────────────────────
 
@@ -196,10 +201,10 @@ export function useAudioSync(
       currentSlideIndex: newIndex,
       currentTime: 0,
       triggeredMarks: new Set(),
-      currentTranscript: lesson.slides[newIndex]?.transcript ?? '',
+      currentTranscript: lessonSlidesRef.current[newIndex]?.transcript ?? '',
       audioError: false,
     }));
-  }, [lesson.slides]);
+  }, []);
 
   // ── Auto-play when slide changes ───────────────────────────────────
 

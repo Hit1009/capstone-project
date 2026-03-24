@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import coursesRouter from './routes/courses';
 import doubtRouter from './routes/doubt';
+import generateRouter from './routes/generate';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,20 +18,20 @@ app.use(cors({
   credentials: true,
 }));
 
-// Parse JSON request bodies
-app.use(express.json());
+// Parse JSON request bodies (increased limit for generated course payloads)
+app.use(express.json({ limit: '10mb' }));
 
 // ── Static files ───────────────────────────────────────────────────
 
-// Serve audio files from the frontend's public/audio directory
-// This avoids duplicating audio files — backend reads from ../ai-tutoring/public/audio
-const audioDir = path.resolve(__dirname, '../../ai-tutoring/public/audio');
+// Serve audio files from the backend's public/audio directory
+const audioDir = path.resolve(__dirname, '../public/audio');
 app.use('/audio', express.static(audioDir));
 
 // ── API routes ─────────────────────────────────────────────────────
 
 app.use('/api', coursesRouter);
 app.use('/api', doubtRouter);
+app.use('/api', generateRouter);
 
 // ── Health check ───────────────────────────────────────────────────
 

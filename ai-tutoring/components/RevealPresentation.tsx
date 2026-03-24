@@ -25,10 +25,14 @@ interface RevealPresentationProps {
    * Callback when slide changes
    */
   onSlideChange?: (state: PresentationState) => void;
+  /**
+   * Initial slide index
+   */
+  initialSlide?: number;
 }
 
 const RevealPresentation = forwardRef<PresentationAPI, RevealPresentationProps>(
-  ({ markdownContent, className = '', onReady, onSlideChange }, ref) => {
+  ({ markdownContent, className = '', onReady, onSlideChange, initialSlide = 0 }, ref) => {
     const deckDivRef = useRef<HTMLDivElement>(null);
     const deckRef = useRef<Reveal.Api | null>(null);
     const [isReady, setIsReady] = useState(false);
@@ -118,6 +122,11 @@ const RevealPresentation = forwardRef<PresentationAPI, RevealPresentationProps>(
       deck.initialize().then(() => {
         deckRef.current = deck;
         setIsReady(true);
+        
+        if (initialSlide > 0) {
+          deck.slide(initialSlide, 0);
+        }
+        
         onReadyRef.current?.();
 
         // Notify via ref so listeners always call the LATEST callback

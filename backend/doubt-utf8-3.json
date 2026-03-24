@@ -1,0 +1,37 @@
+﻿{
+    "slides":  [
+                   {
+                       "id":  "doubt-1774359024814-slide-0",
+                       "slideIndex":  0,
+                       "rawMarkdown":  "### The Operating System: The Digital Intermediary\n\nThink of an Operating System (OS) as the **bridge** between you and the computer\u0027s physical parts.\n\n*   **Definition:** Software that manages computer hardware and software resources. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e\n*   **The Analogy:** If a computer is a restaurant, the hardware is the kitchen, and the apps are the food. The **OS is the Waiter** who takes your order and ensures the kitchen prepares it correctly. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e\n*   **Key Examples:** Windows, macOS, Linux, Android, and iOS. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e",
+                       "audioUrl":  "/audio/doubt-1774359024814-slide-0.mp3",
+                       "audioDuration":  7.4,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "To answer your question simply, an operating system is the most important piece of software on your computer. It acts as a manager, controlling all the hardware and providing a way for other programs to run. Think of it like a waiter in a restaurant. You don\u0027t go into the kitchen to cook the food yourself; you tell the waiter what you want, and they coordinate with the chefs to make it happen. You likely use one every day, whether it is Windows on a laptop, macOS on a MacBook, or Android on your phone."
+                   },
+                   {
+                       "id":  "doubt-1774359024814-slide-1",
+                       "slideIndex":  1,
+                       "rawMarkdown":  "### What Does it Actually Do?\n\nThe OS handles the \"dirty work\" so you don\u0027t have to.\n\n| Task | Description |\n| :--- | :--- |\n| **Processor Management** | Decides which app gets the CPU\u0027s attention and for how long. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e |\n| **Memory Management** | Keeps track of RAM so apps don\u0027t crash into each other. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e |\n| **Storage/File System** | Organizes how data is saved and retrieved from your hard drive. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e |\n| **User Interface (UI)** | Provides the icons, windows, and menus you click on. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"3\" --\u003e |",
+                       "audioUrl":  "/audio/doubt-1774359024814-slide-1.mp3",
+                       "audioDuration":  8.2,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "The OS is constantly working behind the scenes. First, it manages the processor, deciding which application gets to use the CPU at any given millisecond. It also manages memory, ensuring that your web browser doesn\u0027t try to use the same part of the RAM that your music player is using. It handles the file system, which is why you see folders and files instead of just raw binary data on a disk. Finally, it provides the User Interface, like the desktop and icons, which allows you to interact with the machine without needing to write code."
+                   },
+                   {
+                       "id":  "doubt-1774359024814-slide-2",
+                       "slideIndex":  2,
+                       "rawMarkdown":  "### Connecting Back: The \"Layer\" Concept\n\nReturning to your original slide, the OS is a **layer** because of its position in the hierarchy:\n\n1.  **Top Layer:** Applications (Chrome, Games, Spotify) \u003c!-- .element: class=\"fragment\" data-fragment-index=\"0\" --\u003e\n2.  **Middle Layer:** **The Operating System** (The Translator) \u003c!-- .element: class=\"fragment\" data-fragment-index=\"1\" --\u003e\n3.  **Bottom Layer:** Hardware (CPU, RAM, Disk, GPU) \u003c!-- .element: class=\"fragment\" data-fragment-index=\"2\" --\u003e\n\n**Summary:** Without this middle layer, every app would need to know exactly how to talk to every different type of hardware. The OS standardizes this interaction. \u003c!-- .element: class=\"fragment\" data-fragment-index=\"3\" --\u003e",
+                       "audioUrl":  "/audio/doubt-1774359024814-slide-2.mp3",
+                       "audioDuration":  9.5,
+                       "timepoints":  [
+
+                                      ],
+                       "transcript":  "Now, let\u0027s connect this back to the slide you were viewing. At the top, you have your applications like Chrome or Spotify. In the middle is the Operating System, acting as the layer that translates your clicks into commands the computer understands. At the bottom is the raw hardware, like the silicon chips and circuits. In summary, the OS is a layer because it sits between the user and the metal. It makes computers user-friendly by hiding the complex electronics behind a manageable interface. Now that we\u0027ve defined what an OS is, let\u0027s look closer at how that \u0027layering\u0027 actually works in practice."
+                   }
+               ]
+}

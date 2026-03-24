@@ -2,7 +2,6 @@
 
 import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 import RevealPresentation from '@/components/RevealPresentation';
 import LessonSidebar from '@/components/LessonSidebar';
 import TopBar from '@/components/TopBar';
@@ -10,10 +9,10 @@ import DebugControlPanel from '@/components/DebugControlPanel';
 import AudioPlayer from '@/components/AudioPlayer';
 import TranscriptOverlay from '@/components/TranscriptOverlay';
 import DoubtPanel from '@/components/DoubtPanel';
-import type { PresentationAPI, PresentationState, LessonPayload, TopicNode, Chapter } from '@/types/presentation';
+import type { PresentationAPI, PresentationState, LessonPayload, SlideData, TopicNode, Chapter } from '@/types/presentation';
 import { useAudioSync } from '@/hooks/useAudioSync';
 import { fetchLesson, getAudioUrl } from '@/lib/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles } from 'lucide-react';
 
 /** Return the full title path from a TopicNode tree to the deepest node matching the slide */
 function findTopicPath(nodes: TopicNode[], slideIndex: number): string[] | null {
@@ -38,7 +37,7 @@ function buildBreadcrumb(chapters: Chapter[], slideIndex: number): string[] {
 
 // ── Inner component that renders only when lesson is loaded ─────────
 
-function LessonView({ lesson }: { lesson: LessonPayload }) {
+function LessonView({ lesson: initialLesson }: { lesson: LessonPayload }) {
   const presentationRef = useRef<PresentationAPI>(null);
 
   // UI state
@@ -47,12 +46,22 @@ function LessonView({ lesson }: { lesson: LessonPayload }) {
   const [isDoubtPanelOpen, setIsDoubtPanelOpen] = useState(false);
   const [showTranscript, setShowTranscript] = useState(true);
 
+  // Branch slides state
+  const [lesson, setLesson] = useState<LessonPayload>(initialLesson);
+  const [isBranching, setIsBranching] = useState(false);
+  const [returnSlideIndex, setReturnSlideIndex] = useState<number>(0);
+  const [branchSlideCount, setBranchSlideCount] = useState<number>(0);
+  const [branchInsertIndex, setBranchInsertIndex] = useState<number>(0);
+  const [targetSlideIndex, setTargetSlideIndex] = useState<number>(0);
+
   // Audio sync engine
   const { state: audioState, controls: audioControls, audioRef, audioEventHandlers } =
     useAudioSync(lesson, presentationRef);
 
   // ── Full breadcrumb: chapter • topic • subtopic • ... ────────────
-  const breadcrumb = buildBreadcrumb(lesson.coursePlan.chapters, audioState.currentSlideIndex);
+  const breadcrumb = isBranching
+    ? ['AI Tutor', 'Doubt Explanation']
+    : buildBreadcrumb(lesson.coursePlan.chapters, audioState.currentSlideIndex);
 
   // ── Stitch markdown from all slides ──────────────────────────────
   const consolidatedMarkdown = useMemo(() => {
@@ -78,6 +87,55 @@ function LessonView({ lesson }: { lesson: LessonPayload }) {
     setIsDoubtPanelOpen(false);
     audioControls.play();
   }, [audioControls]);
+
+  // ── Branch slides handler ────────────────────────────────────────
+  const handleBranchSlides = useCallback(
+    (branchSlides: SlideData[]) => {
+      const currentIdx = audioState.currentSlideIndex;
+      setReturnSlideIndex(currentIdx);
+      setBranchSlideCount(branchSlides.length);
+
+      // Insert branch slides after the current slide
+      const insertIdx = currentIdx + 1;
+      setBranchInsertIndex(insertIdx);
+
+      // Re-index branch slides for their position in the full array
+      const reindexedBranch = branchSlides.map((slide, i) => ({
+        ...slide,
+        slideIndex: insertIdx + i,
+      }));
+
+      // Update the lesson with injected branch slides
+      setLesson((prev) => {
+        const newSlides = [...prev.slides];
+        newSlides.splice(insertIdx, 0, ...reindexedBranch);
+
+        // Re-index all slides after insertion
+        const finalSlides = newSlides.map((s, i) => ({ ...s, slideIndex: i }));
+
+        return { ...prev, slides: finalSlides };
+      });
+
+      setIsBranching(true);
+      setTargetSlideIndex(insertIdx);
+    },
+    [audioState.currentSlideIndex]
+  );
+
+  // ── Return from branch slides ────────────────────────────────────
+  const handleReturnToLesson = useCallback(() => {
+    // Remove branch slides from the lesson
+    setLesson((prev) => {
+      const newSlides = [...prev.slides];
+      newSlides.splice(branchInsertIndex, branchSlideCount);
+      const finalSlides = newSlides.map((s, i) => ({ ...s, slideIndex: i }));
+      return { ...prev, slides: finalSlides };
+    });
+
+    setIsBranching(false);
+    setBranchSlideCount(0);
+    setTargetSlideIndex(returnSlideIndex);
+  }, [branchInsertIndex, branchSlideCount, returnSlideIndex]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────────
   useEffect(() => {
@@ -140,7 +198,7 @@ function LessonView({ lesson }: { lesson: LessonPayload }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar
-          topicTitle={lesson.topicTitle}
+          topicTitle={isBranching ? '🤔 AI Doubt Explanation' : lesson.topicTitle}
           breadcrumb={breadcrumb}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onPauseSession={audioControls.togglePlayPause}
@@ -148,15 +206,44 @@ function LessonView({ lesson }: { lesson: LessonPayload }) {
           isPlaying={audioState.isPlaying}
         />
 
+        {/* Branch Slide Banner */}
+        {isBranching && (
+          <div className="branch-banner">
+            <div className="branch-banner-content">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <span className="branch-banner-text">
+                AI Tutor is explaining your doubt with interactive slides
+              </span>
+            </div>
+            <button
+              className="branch-banner-return"
+              onClick={handleReturnToLesson}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Return to Lesson</span>
+            </button>
+          </div>
+        )}
+
         {/* Presentation Wrapper */}
         <main className="flex-1 relative bg-slate-50 flex flex-col overflow-hidden">
           {/* Background Effects */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-100/40 via-white to-white pointer-events-none" />
+          <div className={`absolute inset-0 pointer-events-none ${
+            isBranching
+              ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-100/40 via-white to-white'
+              : 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-100/40 via-white to-white'
+          }`} />
 
           {/* Reveal Container */}
           <div className="flex-1 flex items-center justify-center p-6 relative">
-            <div className="w-full max-w-5xl aspect-video shadow-2xl rounded-xl overflow-hidden border border-slate-200 relative z-0">
+            <div className={`w-full max-w-5xl aspect-video shadow-2xl rounded-xl overflow-hidden relative z-0 ${
+              isBranching
+                ? 'border-2 border-indigo-400/50 shadow-indigo-200/50'
+                : 'border border-slate-200'
+            }`}>
               <RevealPresentation
+                key={lesson.slides.length}
+                initialSlide={targetSlideIndex}
                 ref={presentationRef}
                 markdownContent={consolidatedMarkdown}
                 className="w-full h-full"
@@ -209,6 +296,7 @@ function LessonView({ lesson }: { lesson: LessonPayload }) {
         slideIndex={audioState.currentSlideIndex}
         slideContent={lesson.slides[audioState.currentSlideIndex]?.rawMarkdown || ''}
         transcript={lesson.slides[audioState.currentSlideIndex]?.transcript || ''}
+        onBranchSlides={handleBranchSlides}
       />
 
       {/* Debug Controls (Overlay) */}
@@ -271,3 +359,4 @@ export default function LearnPage() {
 
   return <LessonView lesson={lesson} />;
 }
+
