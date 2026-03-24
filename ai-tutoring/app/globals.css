@@ -969,3 +969,55 @@ body {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(350%); }
 }
+
+/* ── Speech-to-Text Mic Button ─────────────────────────────────────── */
+
+.stt-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.stt-mic-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.stt-mic-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stt-mic-btn-active {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  animation: stt-pulse 1.5s ease-in-out infinite;
+}
+
+.stt-mic-btn-active:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #f87171;
+}
+
+@keyframes stt-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.08);
+  }
+}

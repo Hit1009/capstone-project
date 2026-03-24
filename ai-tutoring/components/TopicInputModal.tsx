@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Sparkles, Loader2, BookOpen, ArrowRight } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Sparkles, Loader2, BookOpen, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { generateCourse, type GenerateCourseResponse } from '@/lib/api';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 
 interface TopicInputModalProps {
   isOpen: boolean;
@@ -31,12 +32,27 @@ export default function TopicInputModal({
   const [progressIndex, setProgressIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Speech-to-text
+  const handleSpeechResult = useCallback((text: string) => {
+    setTopic(text);
+  }, []);
+
+  const { isListening, interimText, isSupported, toggleListening, stopListening } =
+    useSpeechToText({ onResult: handleSpeechResult });
+
   // Focus input when modal opens
   useEffect(() => {
     if (isOpen && !isGenerating) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [isOpen, isGenerating]);
+
+  // Stop listening when modal closes
+  useEffect(() => {
+    if (!isOpen && isListening) {
+      stopListening();
+    }
+  }, [isOpen, isListening, stopListening]);
 
   // Progress message rotation during generation
   useEffect(() => {
@@ -62,6 +78,7 @@ export default function TopicInputModal({
   }, [isOpen, isGenerating, onClose]);
 
   const handleSubmit = async () => {
+    if (isListening) stopListening();
     const trimmed = topic.trim();
     if (!trimmed || isGenerating) return;
 
@@ -86,6 +103,9 @@ export default function TopicInputModal({
       handleSubmit();
     }
   };
+
+  // Show interim text while speaking
+  const displayValue = isListening && interimText ? interimText : topic;
 
   if (!isOpen) return null;
 
@@ -140,8 +160,8 @@ export default function TopicInputModal({
               </div>
               <h2 className="topic-modal-title">Learn Anything</h2>
               <p className="topic-modal-subtitle">
-                Enter any topic and our AI will generate a complete interactive course
-                with slides, narration, and audio — just for you.
+                Enter any topic or use your voice — our AI will generate a complete
+                interactive course with slides, narration, and audio.
               </p>
             </div>
 
@@ -152,17 +172,32 @@ export default function TopicInputModal({
                   ref={inputRef}
                   type="text"
                   className="topic-modal-input"
-                  placeholder='e.g. "Introduction to Machine Learning"'
-                  value={topic}
+                  placeholder={isListening ? 'Listening... say a topic' : 'e.g. "Introduction to Machine Learning"'}
+                  value={displayValue}
                   onChange={(e) => setTopic(e.target.value)}
                   onKeyDown={handleKeyDown}
                 />
+                {isSupported && (
+                  <button
+                    className={`stt-mic-btn ${isListening ? 'stt-mic-btn-active' : ''}`}
+                    onClick={toggleListening}
+                    disabled={isGenerating}
+                    title={isListening ? 'Stop recording' : 'Voice input'}
+                    type="button"
+                  >
+                    {isListening ? (
+                      <MicOff className="w-4 h-4" />
+                    ) : (
+                      <Mic className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
               </div>
 
               <button
                 className="topic-modal-submit"
                 onClick={handleSubmit}
-                disabled={!topic.trim()}
+                disabled={!displayValue.trim()}
               >
                 <span>Generate Course</span>
                 <ArrowRight className="w-4 h-4" />

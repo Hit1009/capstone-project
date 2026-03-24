@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Loader2, BookOpen } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Send, Sparkles, Loader2, BookOpen, Mic, MicOff } from 'lucide-react';
 import { askDoubtSlides } from '@/lib/api';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 import type { SlideData } from '@/types/presentation';
 
 interface DoubtPanelProps {
@@ -29,6 +30,17 @@ export default function DoubtPanel({
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Speech-to-text
+  const handleSpeechResult = useCallback((text: string) => {
+    setQuestion((prev) => {
+      const combined = prev ? `${prev} ${text}` : text;
+      return combined;
+    });
+  }, []);
+
+  const { isListening, interimText, isSupported, toggleListening, stopListening } =
+    useSpeechToText({ onResult: handleSpeechResult });
+
   // Focus textarea when panel opens
   useEffect(() => {
     if (isOpen) {
@@ -36,7 +48,15 @@ export default function DoubtPanel({
     }
   }, [isOpen]);
 
+  // Stop listening when panel closes
+  useEffect(() => {
+    if (!isOpen && isListening) {
+      stopListening();
+    }
+  }, [isOpen, isListening, stopListening]);
+
   const handleSubmit = async () => {
+    if (isListening) stopListening();
     const trimmed = question.trim();
     if (!trimmed || isLoading) return;
 
@@ -69,6 +89,11 @@ export default function DoubtPanel({
       handleSubmit();
     }
   };
+
+  // Show interim text alongside current question
+  const displayValue = isListening && interimText
+    ? (question ? `${question} ${interimText}` : interimText)
+    : question;
 
   return (
     <>
@@ -157,17 +182,32 @@ export default function DoubtPanel({
             <textarea
               ref={textareaRef}
               className="doubt-panel-textarea"
-              placeholder="Ask a question about the current slide..."
-              value={question}
+              placeholder={isListening ? 'Listening... speak your question' : 'Ask a question about the current slide...'}
+              value={displayValue}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={2}
               disabled={isLoading}
             />
+            {isSupported && (
+              <button
+                className={`stt-mic-btn ${isListening ? 'stt-mic-btn-active' : ''}`}
+                onClick={toggleListening}
+                disabled={isLoading}
+                title={isListening ? 'Stop recording' : 'Voice input'}
+                type="button"
+              >
+                {isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </button>
+            )}
             <button
               className="doubt-panel-submit"
               onClick={handleSubmit}
-              disabled={!question.trim() || isLoading}
+              disabled={!displayValue.trim() || isLoading}
               title="Send question"
             >
               {isLoading ? (
