@@ -22,3 +22,7 @@ Thumbs.db
 
 # TypeScript
 tsconfig.tsbuildinfo
+
+# Generated Assets
+backend/public/audio/*.mp3
+icons/

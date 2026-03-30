@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { BookOpen, CheckCircle, Circle, PlayCircle, ChevronRight, ChevronDown } from 'lucide-react';
+import { GraduationCap, CheckCircle, Circle, PlayCircle, ChevronRight, ChevronDown } from 'lucide-react';
 import type { SlideData, CoursePlan, TopicNode } from '@/types/presentation';
 
 interface LessonSidebarProps {
@@ -125,7 +125,7 @@ export default function LessonSidebar({
     <aside className="w-80 bg-slate-50 border-r border-slate-200 flex flex-col h-full shrink-0 transition-colors">
       <div className="p-4 border-b border-slate-200 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-indigo-600" />
+          <GraduationCap className="w-5 h-5 text-indigo-600" />
           Course Plan
         </h2>
         <button 

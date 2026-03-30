@@ -1,7 +1,6 @@
 import React from 'react';
-import { PauseCircle, PlayCircle, MoreVertical, Menu, Bell, MessageCircle } from 'lucide-react';
-
-interface TopBarProps {
+import Link from 'next/link';
+import { PauseCircle, PlayCircle, Menu, MessageCircle, Home } from 'lucide-react';interface TopBarProps {
   topicTitle?: string;
   /** Full hierarchy path: [chapter, topic, subtopic, ...] */
   breadcrumb?: string[];
@@ -38,6 +37,14 @@ export default function TopBar({
       </div>
 
       <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors text-sm font-medium"
+        >
+          <Home className="w-4 h-4" />
+          <span className="hidden sm:inline">Home</span>
+        </Link>
+
         <button
           onClick={onPauseSession}
           className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors text-sm font-medium"
@@ -65,13 +72,6 @@ export default function TopBar({
         
         <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
-        <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors relative">
-           <Bell className="w-5 h-5" />
-           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
-         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-            <MoreVertical className="w-5 h-5" />
-        </button>
       </div>
     </header>
   );

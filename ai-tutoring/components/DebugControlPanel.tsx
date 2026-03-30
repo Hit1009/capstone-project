@@ -31,11 +31,11 @@ export default function DebugControlPanel({
   const dragOrigin = useRef({ mouseX: 0, mouseY: 0, startX: 0, startY: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Compute initial position (top-right) on mount
+  // Compute initial position (middle-right) on mount
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     if (!initialized && typeof window !== 'undefined') {
-      setPosition({ x: window.innerWidth - 340, y: 16 });
+      setPosition({ x: window.innerWidth - 340, y: (window.innerHeight / 2) - 100 });
       setInitialized(true);
     }
   }, [initialized]);

@@ -44,7 +44,7 @@ function LessonView({ lesson: initialLesson }: { lesson: LessonPayload }) {
   const [presState, setPresState] = useState<PresentationState | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDoubtPanelOpen, setIsDoubtPanelOpen] = useState(false);
-  const [showTranscript, setShowTranscript] = useState(true);
+  const [showTranscript, setShowTranscript] = useState(false);
 
   // Branch slides state
   const [lesson, setLesson] = useState<LessonPayload>(initialLesson);
